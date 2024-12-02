@@ -1,0 +1,12 @@
+The agent step function takes the agent state and the environment state as input. The environment state contains the following variables:
+* agent_pos: array (2,), the position of the agent
+* agent_food_level: float, the food level of the agent
+* agent_sleep_level: float, the sleep level of the agent
+* food_positions: array (n_food, 2), the positions of the food
+* nest_pos: array (2,), the position of the nest
+* eating_food: bool, whether the agent is currently eating food. True when the agent is on the food and becomes False immediately after, when the food is eaten (assume the food is instantaneously eaten whenever the agent is on it).
+* in_nest: bool, whether the agent is currently in the nest
+
+The action of the agent is an array (2,) with the following elements:
+* delta_x: float, the change in the x coordinate
+* delta_y: float, the change in the y coordinate

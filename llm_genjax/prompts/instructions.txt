@@ -1,0 +1,15 @@
+You observe an agent interacting in an environment. Your task is to infer the source code of the agent based on its observed behavior. Your inferred code will be run in the same environment so that it can be directly compared to the ground truth agent.
+
+{env_interface}
+
+Implement the agent using the 'genjax' library.
+{genjax_docs}
+
+{agent_description}
+
+Format your answer as follows:
+<reasoning>
+# TODO
+</reasoning>
+
+{agent_code}

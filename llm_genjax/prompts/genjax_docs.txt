@@ -1,0 +1,40 @@
+Genjax is based on the jax library. So it has similar constraints (e.g. no if statements, no for loops, etc.).
+
+When using a genjax distribution, use the 'distr() @ "var_name"' syntax. For example, to sample a value from a normal distribution, use 'genjax.normal(0.0, 1.0) @ "var_name"'. Use only positional arguments for the distribution (no keyword arguments).
+Distributions available in genjax:
+GenJAX wraps TensorFlow Probability (TFP) distributions in a list of generative functions for common use. Below is the full list of distributions:
+Distribution	Description
+bates	Wraps TFP's tfd.Bates distribution.
+bernoulli	Wraps TFP's tfd.Bernoulli distribution.
+beta	Wraps TFP's tfd.Beta distribution.
+categorical	Wraps TFP's tfd.Categorical distribution.
+chi, chi2	Wraps TFP's tfd.Chi and tfd.Chi2 distributions.
+dirichlet	Wraps TFP's tfd.Dirichlet distribution.
+exponential	Wraps TFP's tfd.Exponential distribution. Constructed using probability, not logits.
+flip	Wraps TFP's tfd.Bernoulli, using probabilities instead of logits.
+geometric	Wraps TFP's tfd.Geometric distribution.
+gumbel	Wraps TFP's tfd.Gumbel distribution.
+half_cauchy	Wraps TFP's tfd.HalfCauchy distribution.
+half_normal	Wraps TFP's tfd.HalfNormal distribution.
+half_student_t	Wraps TFP's tfd.HalfStudentT distribution.
+inverse_gamma	Wraps TFP's tfd.InverseGamma distribution.
+kumaraswamy	Wraps TFP's tfd.Kumaraswamy distribution.
+laplace	Wraps TFP's tfd.Laplace distribution.
+logit_normal	Wraps TFP's tfd.LogitNormal distribution.
+moyal	Wraps TFP's tfd.Moyal distribution.
+multinomial	Wraps TFP's tfd.Multinomial distribution.
+mv_normal	Wraps TFP's tfd.MultivariateNormalFullCovariance distribution.
+mv_normal_diag	Wraps TFP's tfd.MultivariateNormalDiag distribution.
+negative_binomial	Wraps TFP's tfd.NegativeBinomial distribution.
+normal	Wraps TFP's tfd.Normal distribution.
+plackett_luce	Wraps TFP's tfd.PlackettLuce distribution.
+power_spherical	Wraps TFP's tfd.PowerSpherical distribution.
+skellam	Wraps TFP's tfd.Skellam distribution.
+student_t	Wraps TFP's tfd.StudentT distribution.
+truncated_cauchy	Wraps TFP's tfd.TruncatedCauchy distribution.
+truncated_normal	Wraps TFP's tfd.TruncatedNormal distribution.
+uniform	Wraps TFP's tfd.Uniform distribution.
+von_mises	Wraps TFP's tfd.VonMises distribution.
+von_mises_fisher	Wraps TFP's tfd.VonMisesFisher distribution.
+weibull	Wraps TFP's tfd.Weibull distribution.
+zipf	Wraps TFP's tfd.Zipf distribution.

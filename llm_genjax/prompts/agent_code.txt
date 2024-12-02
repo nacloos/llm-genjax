@@ -1,0 +1,44 @@
+<code name="params/agent/{agent_name}">
+def params(**kwargs):
+    from flax import struct
+    # include all imports here
+
+    @struct.dataclass
+    class Params:
+        # TODO: define all constants here
+
+    return Params(**kwargs)
+</code>
+
+<code name="agent/{agent_name}">
+def agent(params):
+    from flax import struct
+    import jax
+    import jax.numpy as jnp
+    import genjax
+    from genjax import gen
+    # include all imports here
+
+    @struct.dataclass
+    class Agent:
+        init: genjax.StaticGenerativeFunction
+        step: genjax.StaticGenerativeFunction
+
+    @struct.dataclass
+    class State:
+        # TODO
+
+    @gen
+    def init():
+        # TODO
+        return State(
+            # TODO
+        )
+    
+    @gen
+    def step(state, env_state):
+        # TODO
+        return state, action
+
+    return Agent(init=init, step=step)
+</code>
