@@ -9,7 +9,7 @@ from llm_genjax.envs import simulate
 
 
 
-def eval_simulation(states, fps):
+def eval_simulation(states, fps, save_dir=None):
     """
     Args:
         states: pytree of states
@@ -25,11 +25,30 @@ def eval_simulation(states, fps):
             time_in_nest += 1 / fps
 
     total_distance = 0
+    speed_list = []
     for t in range(num_steps):
-        total_distance += np.linalg.norm(states.agent_pos[t] - states.prev_agent_pos[t])
-    mean_speed = total_distance / num_steps
-    max_speed = np.max([np.linalg.norm(states.agent_vel)])
-    min_speed = np.min([np.linalg.norm(states.agent_vel)])
+        speed = np.linalg.norm(states.agent_pos[t] - states.prev_agent_pos[t])
+        total_distance += speed
+        speed_list.append(speed)
+    # mean_speed = total_distance / num_steps
+    mean_speed = np.mean(speed_list)
+    max_speed = np.max(speed_list)
+    min_speed = np.min(speed_list)
+
+    if save_dir is not None:
+        save_dir.mkdir(parents=True, exist_ok=True)
+        # plot agent position over time
+        plt.figure(figsize=(5.5, 2.5), dpi=300)
+        plt.plot(states.agent_pos[:, 0])
+        plt.plot(states.agent_pos[:, 1])
+        ax = plt.gca()
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        plt.xlabel("Time")
+        plt.ylabel("Position")
+        plt.savefig(save_dir / "agent_pos.png", bbox_inches='tight')
+        plt.close()
+    
 
     return {
         "food_collected": float(food_collected),
@@ -40,7 +59,7 @@ def eval_simulation(states, fps):
     }
 
 
-def eval_agents(rng, env, gt_agent, agents, num_steps, fps, save_dir, choice_map=None):
+def eval_agents(rng, env, gt_agent, agents, num_steps, fps, save_dir, choice_maps=None):
     if (save_dir / "results.json").exists():
         print(f"Loading results from {save_dir / 'results.json'}")
         results = json.load(open(save_dir / "results.json"))
@@ -50,6 +69,8 @@ def eval_agents(rng, env, gt_agent, agents, num_steps, fps, save_dir, choice_map
 
     save_dir.mkdir(parents=True, exist_ok=True)
 
+    choice_maps = choice_maps or {}
+
     assert "agent/groundtruth" not in agents
     agents = {**agents, "agent/groundtruth": gt_agent}
     for name, agent in agents.items():
@@ -57,66 +78,80 @@ def eval_agents(rng, env, gt_agent, agents, num_steps, fps, save_dir, choice_map
             # load existing results for that agent
             continue
 
-        _save_dir = save_dir / name
-        _, states, actions = simulate(rng, env, agent, num_steps=num_steps, save_dir=_save_dir, choice_map=choice_map)
-        results[name] = eval_simulation(states, fps=fps)
+        _save_dir = save_dir / name.split("/")[-1]
+        _, states, actions = simulate(rng, env, agent, num_steps=num_steps, choice_map=choice_maps.get(name, None))
+        results[name] = eval_simulation(states, fps=fps, save_dir=_save_dir)
 
     # save results
     with open(save_dir / "results.json", "w") as f:
         json.dump(results, f, indent=4)
 
     results_df = pd.DataFrame(results).T
+    # add a column for the agent name
+    results_df["agent"] = results_df.index
     results_df.to_csv(save_dir / "results.csv")
 
     gt_results_df = results_df.loc[["agent/groundtruth"]]
 
     # scatter plot of gt food collected vs time in nest
-    plt.figure(figsize=(5, 2.5), dpi=300)
+    plt.figure(figsize=(5.5, 2.5), dpi=300)
 
     # Plot ground truth agents as larger markers
-    sns.scatterplot(
-        data=gt_results_df, 
-        x="food_collected", 
-        y="time_in_nest",
-        marker='o',
-        s=100,       # larger size
-        legend='brief'
-    )
+    # sns.scatterplot(
+    #     data=gt_results_df, 
+    #     x="food_collected", 
+    #     y="time_in_nest",
+    #     hue="agent",
+    #     marker='o',
+    #     s=100,       # larger size
+    #     legend='brief'
+    # )
+    # # Plot best agent runs as smaller dots with same colors
+    # sns.scatterplot(
+    #     data=results_df.drop(index=["agent/groundtruth"]),
+    #     x="food_collected",
+    #     y="time_in_nest", 
+    #     hue="agent",
+    #     marker='$\circ$',  # open circle marker for best agents
+    #     s=80,        # smaller size
+    #     legend=False # don't add duplicate legend entries
+    # )
     # Plot best agent runs as smaller dots with same colors
     sns.scatterplot(
-        data=results_df.drop(index=["agent/groundtruth"]),
+        data=results_df,
         x="food_collected",
         y="time_in_nest", 
-        marker='$\circ$',  # open circle marker for best agents
+        hue="agent",
         s=80,        # smaller size
-        legend=False # don't add duplicate legend entries
     )
+    plt.xlim(-5, 105)
+    plt.ylim(-5, 105)
     ax = plt.gca()
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     plt.xlabel("Amount of food collected")
     plt.ylabel("Time in nest")
-    # plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
 
-    # Get the current handles and labels
-    handles, labels = plt.gca().get_legend_handles_labels()
+    # # Get the current handles and labels
+    # handles, labels = plt.gca().get_legend_handles_labels()
     
-    # Add marker-type indicators to the legend
-    from matplotlib.lines import Line2D
-    legend_elements = [
-        Line2D([0], [0], marker='o', color='w', markerfacecolor='gray', 
-               label='Groundtruth', markersize=10),
-        Line2D([0], [0], marker='$\circ$', color='w', markerfacecolor='gray',
-               label='LLM-generated', markersize=10)
-    ]
+    # # Add marker-type indicators to the legend
+    # from matplotlib.lines import Line2D
+    # legend_elements = [
+    #     Line2D([0], [0], marker='o', color='w', markerfacecolor='gray', 
+    #            label='Groundtruth', markersize=10),
+    #     Line2D([0], [0], marker='$\circ$', color='w', markerfacecolor='gray',
+    #            label='LLM-generated', markersize=10)
+    # ]
     
-    # Combine both types of legend elements
-    all_handles = legend_elements + handles
-    all_labels = ['Groundtruth', 'LLM-generated'] + labels
+    # # Combine both types of legend elements
+    # all_handles = legend_elements + handles
+    # all_labels = ['Groundtruth', 'LLM-generated'] + labels
     
-    # Create new legend
-    ax = plt.gca()
-    ax.legend(all_handles, all_labels, bbox_to_anchor=(1.05, 1), loc='upper left')
+    # # Create new legend
+    # ax = plt.gca()
+    # ax.legend(all_handles, all_labels, bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.tight_layout()
     plt.savefig(save_dir / "eval.png", bbox_inches='tight')
     plt.close()

@@ -5,7 +5,9 @@ You observe an agent interacting in an environment. Your task is to infer the so
 Implement the agent using the 'genjax' library.
 {genjax_docs}
 
+<agent_description>
 {agent_description}
+</agent_description>
 
 Format your answer as follows:
 <reasoning>

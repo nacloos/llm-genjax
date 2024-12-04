@@ -60,11 +60,11 @@ class ParamsEnvForaging:
     sleep_decay: float = 0.09
     sleep_increment: float = 0.13
     sleep_max: float = 1.0
-    sleep_threshold: float = 0.3
+    # sleep_threshold: float = 0.3
 
     food_decay: float = 0.002  # food percentage per second
     food_max: float = 1.
-    food_threshold: float = 0.3
+    # food_threshold: float = 0.3
     num_food_sources: int = 5
 
     good_food_prob: float = 0.5  # assume good food = idx 1
@@ -529,8 +529,8 @@ def agent_nearest_food(params):
 @struct.dataclass
 class ParamsAgentNearestFoodSleep:
     speed: float = 2.5
-    food_threshold: float = 0.3
-    sleep_threshold: float = 0.3
+    food_threshold: float = 0.5
+    sleep_threshold: float = 0.4
 
     kp: float = 0.5
     kd: float = 0.3
@@ -666,7 +666,7 @@ def make_model(env, agent, num_steps):
 
 
 
-def simulate(rng, env, agent, num_steps, choice_map=None, save_dir=None):
+def simulate(rng, env, agent, num_steps, choice_map=None, animate=False, video_steps=None, save_path=None):
     model = make_model(env, agent, num_steps)
 
     if choice_map is None:
@@ -675,7 +675,18 @@ def simulate(rng, env, agent, num_steps, choice_map=None, save_dir=None):
         tr, weight = jax.jit(model.importance)(rng, choice_map, ())
 
     states, actions = tr.get_retval()
-    return tr, states, actions
+
+    if animate:
+        frames = jax.vmap(env.render, in_axes=(0, None))(states, env.params)
+
+        if save_path:
+            save_path.parent.mkdir(parents=True, exist_ok=True)
+            _frames = frames[:video_steps] if video_steps is not None else frames
+            animate_frames(_frames, fps=env.params.fps, save_path=save_path)
+
+        return tr, states, actions, _frames
+    else:
+        return tr, states, actions
 
 
 def plot_agent_pos(states, save_dir=None):

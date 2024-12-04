@@ -42,3 +42,6 @@ def agent(params):
 
     return Agent(init=init, step=step)
 </code>
+
+
+where {agent_name} is a placeholder for the actual agent name.
